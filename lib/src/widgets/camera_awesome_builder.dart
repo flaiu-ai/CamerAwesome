@@ -118,6 +118,10 @@ class CameraAwesomeBuilder extends StatefulWidget {
   /// You can use it to do whatever you want once a media has been saved
   final OnMediaCaptureEvent? onMediaCaptureEvent;
 
+  /// Optional key to access the preview state from outside
+  /// Use this to call methods like resetGestureZoom()
+  final GlobalKey<AwesomeCameraPreviewState>? previewKey;
+
   const CameraAwesomeBuilder._({
     required this.sensorConfig,
     required this.enablePhysicalButton,
@@ -139,6 +143,7 @@ class CameraAwesomeBuilder extends StatefulWidget {
     required this.pictureInPictureConfigBuilder,
     this.availableFilters,
     this.onMediaCaptureEvent,
+    this.previewKey,
   });
 
   /// Use the camera with the built-in interface.
@@ -183,7 +188,8 @@ class CameraAwesomeBuilder extends StatefulWidget {
       PictureInPictureConfigBuilder? pictureInPictureConfigBuilder,
       AwesomeFilter? defaultFilter,
       List<AwesomeFilter>? availableFilters,
-      OnMediaCaptureEvent? onMediaCaptureEvent})
+      OnMediaCaptureEvent? onMediaCaptureEvent,
+      GlobalKey<AwesomeCameraPreviewState>? previewKey})
       : this._(
           sensorConfig: sensorConfig ??
               SensorConfig.single(
@@ -215,6 +221,7 @@ class CameraAwesomeBuilder extends StatefulWidget {
           defaultFilter: defaultFilter,
           availableFilters: availableFilters ?? awesomePresetFiltersList,
           onMediaCaptureEvent: onMediaCaptureEvent,
+          previewKey: previewKey,
         );
 
   /// 🚧 Experimental
@@ -239,6 +246,7 @@ class CameraAwesomeBuilder extends StatefulWidget {
     PictureInPictureConfigBuilder? pictureInPictureConfigBuilder,
     List<AwesomeFilter>? filters,
     OnMediaCaptureEvent? onMediaCaptureEvent,
+    GlobalKey<AwesomeCameraPreviewState>? previewKey,
   }) : this._(
           sensorConfig: sensorConfig ??
               SensorConfig.single(
@@ -262,6 +270,7 @@ class CameraAwesomeBuilder extends StatefulWidget {
           pictureInPictureConfigBuilder: pictureInPictureConfigBuilder,
           availableFilters: filters,
           onMediaCaptureEvent: onMediaCaptureEvent,
+          previewKey: previewKey,
         );
 
   /// Use this constructor when you don't want to take pictures or record videos.
@@ -279,6 +288,7 @@ class CameraAwesomeBuilder extends StatefulWidget {
     EdgeInsets previewPadding = EdgeInsets.zero,
     Alignment previewAlignment = Alignment.center,
     PictureInPictureConfigBuilder? pictureInPictureConfigBuilder,
+    GlobalKey<AwesomeCameraPreviewState>? previewKey,
   }) : this._(
           sensorConfig: sensorConfig ??
               SensorConfig.single(sensor: Sensor.position(SensorPosition.back)),
@@ -298,6 +308,7 @@ class CameraAwesomeBuilder extends StatefulWidget {
           previewPadding: previewPadding,
           previewAlignment: previewAlignment,
           pictureInPictureConfigBuilder: pictureInPictureConfigBuilder,
+          previewKey: previewKey,
         );
 
   /// Use this constructor when you only want to do image analysis.
@@ -347,6 +358,10 @@ class _CameraWidgetBuilder extends State<CameraAwesomeBuilder>
   late CameraContext _cameraContext;
   final _cameraPreviewKey = GlobalKey<AwesomeCameraPreviewState>();
   StreamSubscription<MediaCapture?>? _captureStateListener;
+
+  /// Returns the preview key, either from the widget or the internal one
+  GlobalKey<AwesomeCameraPreviewState> get _previewKey =>
+      widget.previewKey ?? _cameraPreviewKey;
 
   @override
   void dispose() {
@@ -441,7 +456,7 @@ class _CameraWidgetBuilder extends State<CameraAwesomeBuilder>
                         AnalysisPreview.hidden(),
                       )
                     : AwesomeCameraPreview(
-                        key: _cameraPreviewKey,
+                        key: _previewKey,
                         previewFit: widget.previewFit,
                         state: snapshot.requireData,
                         padding: widget.previewPadding,

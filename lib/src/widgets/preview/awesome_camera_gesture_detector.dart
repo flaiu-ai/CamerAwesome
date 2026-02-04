@@ -145,6 +145,13 @@ class _AwesomeCameraGestureDetector
     );
   }
 
+  /// Sets the zoom scale value from outside.
+  /// The value will be clamped between 0 and 1.
+  void setZoomScale(double value) {
+    _zoomScale = value.clamp(0, 1);
+    widget.onPreviewScale?.onScale(_zoomScale);
+  }
+
   @override
   dispose() {
     _timer?.cancel();

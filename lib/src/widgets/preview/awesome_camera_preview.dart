@@ -65,6 +65,8 @@ class AwesomeCameraPreviewState extends State<AwesomeCameraPreview> {
   // TODO: fetch this value from the native side
   final int kMaximumSupportedFloatingPreview = 3;
 
+  final _gestureDetectorKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -142,6 +144,16 @@ class AwesomeCameraPreviewState extends State<AwesomeCameraPreview> {
     super.dispose();
   }
 
+  /// Resets the gesture detector's internal zoom scale to the specified value.
+  /// This is useful when you want to synchronize the internal zoom state
+  /// with the camera's actual zoom level (e.g., after switching cameras).
+  void resetGestureZoom(double zoom) {
+    final state = _gestureDetectorKey.currentState;
+    if (state != null) {
+      (state as dynamic).setZoomScale(zoom);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_textures.isEmpty || _previewSize == null || _aspectRatio == null) {
@@ -177,6 +189,7 @@ class AwesomeCameraPreviewState extends State<AwesomeCameraPreview> {
                     });
                   },
                   child: AwesomeCameraGestureDetector(
+                    key: _gestureDetectorKey,
                     onPreviewTapBuilder:
                         widget.onPreviewTap != null && _previewSize != null
                             ? OnPreviewTapBuilder(
