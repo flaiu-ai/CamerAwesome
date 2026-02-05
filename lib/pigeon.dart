@@ -1286,7 +1286,9 @@ class CameraInterface {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (replyList[0] as double?)!;
+      // casting of ints allowed
+      final value = replyList[0] as num?;
+      return value?.toDouble() ?? 0.0; //
     }
   }
 
@@ -1312,7 +1314,9 @@ class CameraInterface {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (replyList[0] as double?)!;
+      // casting of ints allowed
+      final value = replyList[0] as num?;
+      return value?.toDouble() ?? 1.0; //
     }
   }
 
