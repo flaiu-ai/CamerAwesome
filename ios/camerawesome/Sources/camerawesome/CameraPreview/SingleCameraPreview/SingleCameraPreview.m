@@ -169,8 +169,8 @@
 
   // Enable electronic image stabilization for smoother preview (especially at high zoom)
   if ([_captureConnection isVideoStabilizationSupported]) {
-      _captureConnection.preferredVideoStabilizationMode = AVCaptureVideoStabilizationModeAuto;
-      NSLog(@"[CamerAwesome] Video stabilization enabled (Auto mode)");
+      _captureConnection.preferredVideoStabilizationMode = AVCaptureVideoStabilizationModePreviewOptimized;
+      NSLog(@"[CamerAwesome] Video stabilization enabled (AVCaptureVideoStabilizationModePreviewOptimized)");
   }
 }
 
