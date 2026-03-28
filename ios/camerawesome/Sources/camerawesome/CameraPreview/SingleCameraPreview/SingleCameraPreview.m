@@ -455,22 +455,37 @@
 /// Trigger focus on device at the specific point of the preview
 - (void)focusOnPoint:(CGPoint)position preview:(CGSize)preview error:(FlutterError * _Nullable __autoreleasing * _Nonnull)error {
   NSError *lockError;
+  NSLog(@"[CamerAwesome] focusOnPoint called at (%.3f, %.3f)", position.x, position.y);
+  NSLog(@"[CamerAwesome] captureDevice: %@", _captureDevice.localizedName);
+  NSLog(@"[CamerAwesome] isFocusModeAutoFocusSupported: %d", [_captureDevice isFocusModeSupported:AVCaptureFocusModeAutoFocus]);
+  NSLog(@"[CamerAwesome] isFocusPointOfInterestSupported: %d", [_captureDevice isFocusPointOfInterestSupported]);
+  NSLog(@"[CamerAwesome] isAdjustingFocus (before): %d", _captureDevice.isAdjustingFocus);
+
   if ([_captureDevice isFocusModeSupported:AVCaptureFocusModeAutoFocus] && [_captureDevice isFocusPointOfInterestSupported]) {
-    if ([_captureDevice lockForConfiguration:&lockError]) {
+    BOOL locked = [_captureDevice lockForConfiguration:&lockError];
+    NSLog(@"[CamerAwesome] lockForConfiguration succeeded: %d, error: %@", locked, lockError);
+    if (locked) {
       if (lockError != nil) {
         *error = [FlutterError errorWithCode:@"FOCUS_ERROR" message:@"impossible to set focus point" details:@""];
         return;
       }
-      
+
       [_captureDevice setFocusPointOfInterest:position];
       // Use AutoFocus (single-shot) to lock focus on the tapped point.
       // ContinuousAutoFocus only uses the point as a hint and immediately
       // overrides it, making tap-to-focus unreliable.
-      NSLog(@"[CamerAwesome] tap-to-focus: setting AutoFocus at (%.3f, %.3f)", position.x, position.y);
       [_captureDevice setFocusMode:AVCaptureFocusModeAutoFocus];
+      NSLog(@"[CamerAwesome] focusMode set to AutoFocus, focusPointOfInterest: (%.3f, %.3f)", _captureDevice.focusPointOfInterest.x, _captureDevice.focusPointOfInterest.y);
 
       [_captureDevice unlockForConfiguration];
+
+      // Check if focus actually adjusts after 300ms
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        NSLog(@"[CamerAwesome] isAdjustingFocus (300ms later): %d, currentFocusMode: %ld", self->_captureDevice.isAdjustingFocus, (long)self->_captureDevice.focusMode);
+      });
     }
+  } else {
+    NSLog(@"[CamerAwesome] ⚠️ Focus not supported – skipping focusOnPoint");
   }
 }
 
