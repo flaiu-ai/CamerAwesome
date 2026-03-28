@@ -463,8 +463,12 @@
       }
       
       [_captureDevice setFocusPointOfInterest:position];
-      [_captureDevice setFocusMode:AVCaptureFocusModeContinuousAutoFocus];
-      
+      // Use AutoFocus (single-shot) to lock focus on the tapped point.
+      // ContinuousAutoFocus only uses the point as a hint and immediately
+      // overrides it, making tap-to-focus unreliable.
+      NSLog(@"[CamerAwesome] tap-to-focus: setting AutoFocus at (%.3f, %.3f)", position.x, position.y);
+      [_captureDevice setFocusMode:AVCaptureFocusModeAutoFocus];
+
       [_captureDevice unlockForConfiguration];
     }
   }
