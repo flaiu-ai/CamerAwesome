@@ -166,6 +166,12 @@
   [_captureConnection setAutomaticallyAdjustsVideoMirroring:NO];
   [_captureConnection setVideoMirrored:(_cameraSensorPosition == PigeonSensorPositionFront)];
   [_captureConnection setVideoOrientation:AVCaptureVideoOrientationPortrait];
+
+  // Enable electronic image stabilization for smoother preview (especially at high zoom)
+  if ([_captureConnection isVideoStabilizationSupported]) {
+      _captureConnection.preferredVideoStabilizationMode = AVCaptureVideoStabilizationModeAuto;
+      NSLog(@"[CamerAwesome] Video stabilization enabled (Auto mode)");
+  }
 }
 
 - (void)dealloc {
