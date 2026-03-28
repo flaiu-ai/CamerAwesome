@@ -137,11 +137,37 @@
 // TODO: move this to a QualityController
 /// Assign the default preview qualities
 - (void)setBestPreviewQuality {
+  // Prefer 1080p for live preview to reduce latency and avoid overly aggressive stabilization modes.
+  // Fall back to 1280x720 if 1080p is not available.
   NSArray *qualities = [CameraQualities captureFormatsForDevice:_captureDevice];
-  PreviewSize *firstPreviewSize = [qualities count] > 0 ? qualities.lastObject : [PreviewSize makeWithWidth:@3840 height:@2160];
-  
-  CGSize firstSize = CGSizeMake([firstPreviewSize.width floatValue], [firstPreviewSize.height floatValue]);
-  [self setCameraPreset:firstSize];
+  PreviewSize *preferredPreviewSize = nil;
+  PreviewSize *fallbackPreviewSize = nil;
+
+  for (PreviewSize *previewSize in qualities) {
+    NSInteger width = [previewSize.width integerValue];
+    NSInteger height = [previewSize.height integerValue];
+
+    if ((width == 1920 && height == 1080) || (width == 1080 && height == 1920)) {
+      preferredPreviewSize = previewSize;
+      break;
+    }
+
+    if (fallbackPreviewSize == nil && ((width == 1280 && height == 720) || (width == 720 && height == 1280))) {
+      fallbackPreviewSize = previewSize;
+    }
+  }
+
+  PreviewSize *selectedPreviewSize = preferredPreviewSize;
+  if (selectedPreviewSize == nil) {
+    selectedPreviewSize = fallbackPreviewSize;
+  }
+  if (selectedPreviewSize == nil) {
+    selectedPreviewSize = [qualities count] > 0 ? qualities.lastObject : [PreviewSize makeWithWidth:@1920 height:@1080];
+  }
+
+  CGSize selectedSize = CGSizeMake([selectedPreviewSize.width floatValue], [selectedPreviewSize.height floatValue]);
+  NSLog(@"[CamerAwesome] Default preview target set to %.0fx%.0f", selectedSize.width, selectedSize.height);
+  [self setCameraPreset:selectedSize];
 }
 
 /// Save exif preferences when taking picture
