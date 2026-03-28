@@ -115,12 +115,13 @@
   }
 
   AVCaptureVideoStabilizationMode preferredMode = AVCaptureVideoStabilizationModeOff;
+  AVCaptureDeviceFormat *activeFormat = _captureDevice.activeFormat;
 
-  if ([_captureConnection isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModePreviewOptimized]) {
+  if ([activeFormat isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModePreviewOptimized]) {
     preferredMode = AVCaptureVideoStabilizationModePreviewOptimized;
-  } else if ([_captureConnection isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeAuto]) {
+  } else if ([activeFormat isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeAuto]) {
     preferredMode = AVCaptureVideoStabilizationModeAuto;
-  } else if ([_captureConnection isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeStandard]) {
+  } else if ([activeFormat isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeStandard]) {
     preferredMode = AVCaptureVideoStabilizationModeStandard;
   }
 
