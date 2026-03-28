@@ -94,11 +94,43 @@
   }
 }
 
+
 /// Set physical button Flutter sink
 - (void)setPhysicalButtonEventSink:(FlutterEventSink)physicalButtonEventSink {
   if (_physicalButtonController != nil) {
     [_physicalButtonController setPhysicalButtonEventSink:physicalButtonEventSink];
   }
+}
+
+// Helper: Apply preferred preview stabilization mode to the capture connection
+- (void)applyPreferredPreviewStabilization {
+  if (_captureConnection == nil) {
+    NSLog(@"[CamerAwesome] Stabilization skipped: no capture connection");
+    return;
+  }
+
+  if (![_captureConnection isVideoStabilizationSupported]) {
+    NSLog(@"[CamerAwesome] Stabilization skipped: unsupported on this connection");
+    return;
+  }
+
+  AVCaptureVideoStabilizationMode preferredMode = AVCaptureVideoStabilizationModeOff;
+
+  if ([_captureConnection isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModePreviewOptimized]) {
+    preferredMode = AVCaptureVideoStabilizationModePreviewOptimized;
+  } else if ([_captureConnection isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeAuto]) {
+    preferredMode = AVCaptureVideoStabilizationModeAuto;
+  } else if ([_captureConnection isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeStandard]) {
+    preferredMode = AVCaptureVideoStabilizationModeStandard;
+  }
+
+  _captureConnection.preferredVideoStabilizationMode = preferredMode;
+
+  NSLog(@"[CamerAwesome] Stabilization preferred=%ld active=%ld supported=%d preset=%@",
+        (long)_captureConnection.preferredVideoStabilizationMode,
+        (long)_captureConnection.activeVideoStabilizationMode,
+        [_captureConnection isVideoStabilizationSupported],
+        _captureSession.sessionPreset);
 }
 
 // TODO: move this to a QualityController
@@ -167,11 +199,7 @@
   [_captureConnection setVideoMirrored:(_cameraSensorPosition == PigeonSensorPositionFront)];
   [_captureConnection setVideoOrientation:AVCaptureVideoOrientationPortrait];
 
-  // Enable electronic image stabilization for smoother preview (especially at high zoom)
-  if ([_captureConnection isVideoStabilizationSupported]) {
-      _captureConnection.preferredVideoStabilizationMode = AVCaptureVideoStabilizationModePreviewOptimized;
-      NSLog(@"[CamerAwesome] Video stabilization enabled (AVCaptureVideoStabilizationModePreviewOptimized)");
-  }
+  [self applyPreferredPreviewStabilization];
 }
 
 - (void)dealloc {
@@ -231,6 +259,8 @@
       _currentPreset = _captureSession.sessionPreset;
   }
 
+  [self applyPreferredPreviewStabilization];
+
   // Use the corrected method name
   _currentPreviewSize = [CameraQualities getSizeForPreset:_currentPreset];
 
@@ -282,6 +312,7 @@
 
 /// Start camera preview
 - (void)start {
+  [self applyPreferredPreviewStabilization];
   // Create semaphore to wait for first frame
   dispatch_semaphore_t firstFrameSemaphore = dispatch_semaphore_create(0);
 
@@ -361,6 +392,7 @@
   [_videoController updateCaptureDevice:_captureDevice];
 
   [self setBestPreviewQuality];
+  [self applyPreferredPreviewStabilization];
   
   [_captureSession commitConfiguration];
   if (sessionIsRunning) {
