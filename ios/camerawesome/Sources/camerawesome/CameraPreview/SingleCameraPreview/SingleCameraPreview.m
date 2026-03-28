@@ -119,17 +119,59 @@
 
   if ([activeFormat isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModePreviewOptimized]) {
     preferredMode = AVCaptureVideoStabilizationModePreviewOptimized;
-  } else if ([activeFormat isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeAuto]) {
-    preferredMode = AVCaptureVideoStabilizationModeAuto;
+  } else if ([activeFormat isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeLowLatency]) {
+    preferredMode = AVCaptureVideoStabilizationModeLowLatency;
   } else if ([activeFormat isVideoStabilizationModeSupported:AVCaptureVideoStabilizationModeStandard]) {
     preferredMode = AVCaptureVideoStabilizationModeStandard;
   }
 
   _captureConnection.preferredVideoStabilizationMode = preferredMode;
 
-  NSLog(@"[CamerAwesome] Stabilization preferred=%ld active=%ld supported=%d preset=%@",
-        (long)_captureConnection.preferredVideoStabilizationMode,
-        (long)_captureConnection.activeVideoStabilizationMode,
+  AVCaptureVideoStabilizationMode activeMode = _captureConnection.activeVideoStabilizationMode;
+  NSString *preferredModeName = @"Off";
+  NSString *activeModeName = @"Off";
+
+  switch (preferredMode) {
+    case AVCaptureVideoStabilizationModePreviewOptimized:
+      preferredModeName = @"PreviewOptimized";
+      break;
+    case AVCaptureVideoStabilizationModeLowLatency:
+      preferredModeName = @"LowLatency";
+      break;
+    case AVCaptureVideoStabilizationModeStandard:
+      preferredModeName = @"Standard";
+      break;
+    case AVCaptureVideoStabilizationModeOff:
+      preferredModeName = @"Off";
+      break;
+    default:
+      preferredModeName = [NSString stringWithFormat:@"Unknown(%ld)", (long)preferredMode];
+      break;
+  }
+
+  switch (activeMode) {
+    case AVCaptureVideoStabilizationModePreviewOptimized:
+      activeModeName = @"PreviewOptimized";
+      break;
+    case AVCaptureVideoStabilizationModeLowLatency:
+      activeModeName = @"LowLatency";
+      break;
+    case AVCaptureVideoStabilizationModeStandard:
+      activeModeName = @"Standard";
+      break;
+    case AVCaptureVideoStabilizationModeOff:
+      activeModeName = @"Off";
+      break;
+    default:
+      activeModeName = [NSString stringWithFormat:@"Unknown(%ld)", (long)activeMode];
+      break;
+  }
+
+  NSLog(@"[CamerAwesome] Stabilization preferred=%@ (%ld) active=%@ (%ld) supported=%d preset=%@",
+        preferredModeName,
+        (long)preferredMode,
+        activeModeName,
+        (long)activeMode,
         [_captureConnection isVideoStabilizationSupported],
         _captureSession.sessionPreset);
 }
